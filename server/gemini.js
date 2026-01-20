@@ -1,19 +1,36 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 let genAI = null;
-let model = null;
+
+// Primary and fallback models
+const PRIMARY_MODEL = 'gemini-1.5-flash-001';
+const FALLBACK_MODEL = 'gemini-pro';
 
 const initializeGemini = (apiKey) => {
     genAI = new GoogleGenerativeAI(apiKey);
-    model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+};
+
+const getWorkingModel = async (prompt) => {
+    if (!genAI) throw new Error('Gemini API not initialized.');
+
+    // Try Primary Model
+    try {
+        const model = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
+        return { model, modelName: PRIMARY_MODEL };
+    } catch (error) {
+        console.warn(`Failed to init primary model ${PRIMARY_MODEL}:`, error);
+        // Fallback
+        const model = genAI.getGenerativeModel({ model: FALLBACK_MODEL });
+        return { model, modelName: FALLBACK_MODEL };
+    }
 };
 
 const generateTweet = async (subject, extraInfo, previousTweets = []) => {
-    if (!model) {
+    if (!genAI) {
         throw new Error('Gemini API not initialized. Please set up your API key.');
     }
 
-    // Build context from previous tweets to avoid repetition
+    // Build context
     const previousContext = previousTweets.length > 0
         ? `\n\nAvoid repeating these recent tweets:\n${previousTweets.slice(0, 5).map(t => `- ${t}`).join('\n')}`
         : '';
@@ -35,32 +52,55 @@ Requirements:
 
 Respond with ONLY the tweet text, nothing else.`;
 
+    // Attempt generation with Primary, then Fallback
     try {
+        const model = genAI.getGenerativeModel({ model: PRIMARY_MODEL });
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let tweet = response.text().trim();
+        return cleanTweet(response.text());
+    } catch (primaryError) {
+        console.warn(`Primary model (${PRIMARY_MODEL}) failed, trying fallback (${FALLBACK_MODEL}). Error:`, primaryError.message);
 
-        // Remove any quotes if present
-        tweet = tweet.replace(/^["']|["']$/g, '');
-
-        // Ensure it's not too long
-        if (tweet.length > 200) {
-            tweet = tweet.substring(0, 197) + '...';
+        try {
+            const fallbackModel = genAI.getGenerativeModel({ model: FALLBACK_MODEL });
+            const result = await fallbackModel.generateContent(prompt);
+            const response = await result.response;
+            return cleanTweet(response.text());
+        } catch (fallbackError) {
+            console.error('Gemini API Fallback error:', fallbackError);
+            throw new Error(`Failed to generate tweet with both models. Primary: ${primaryError.message}. Fallback: ${fallbackError.message}`);
         }
-
-        return tweet;
-    } catch (error) {
-        console.error('Gemini API error:', error);
-        throw new Error(`Failed to generate tweet: ${error.message}`);
     }
+};
+
+const cleanTweet = (text) => {
+    let tweet = text.trim();
+    // Remove any quotes if present
+    tweet = tweet.replace(/^["']|["']$/g, '');
+    // Ensure it's not too long
+    if (tweet.length > 200) {
+        tweet = tweet.substring(0, 197) + '...';
+    }
+    return tweet;
 };
 
 const validateApiKey = async (apiKey) => {
     try {
         const testAI = new GoogleGenerativeAI(apiKey);
-        const testModel = testAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        await testModel.generateContent('Say "test" in one word.');
-        return { valid: true };
+
+        // Try Primary
+        try {
+            const testModel = testAI.getGenerativeModel({ model: PRIMARY_MODEL });
+            await testModel.generateContent('test');
+            return { valid: true };
+        } catch (e) {
+            console.warn(`Validation: ${PRIMARY_MODEL} failed, trying ${FALLBACK_MODEL}`);
+            // Try Fallback
+            const fallbackModel = testAI.getGenerativeModel({ model: FALLBACK_MODEL });
+            await fallbackModel.generateContent('test');
+            return { valid: true };
+        }
+
     } catch (error) {
         console.error('Gemini Validation Error:', error);
         return { valid: false, error: error.message };

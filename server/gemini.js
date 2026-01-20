@@ -2,9 +2,9 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 let genAI = null;
 
-// Primary and fallback models
-const PRIMARY_MODEL = 'gemini-1.5-flash-001';
-const FALLBACK_MODEL = 'gemini-pro';
+// Primary and fallback models - using latest stable versions
+const PRIMARY_MODEL = 'gemini-2.0-flash';
+const FALLBACK_MODEL = 'gemini-pro-latest';
 
 const initializeGemini = (apiKey) => {
     genAI = new GoogleGenerativeAI(apiKey);

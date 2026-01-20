@@ -86,6 +86,25 @@ const cleanTweet = (text) => {
 
 const validateApiKey = async (apiKey) => {
     try {
+        // DIAGNOSTIC: List available models to debug 404 errors
+        // This runs a raw HTTP request to see exactly what the key can access
+        console.log('--- DIAGNOSTIC: Testing API Key capabilities ---');
+        try {
+            const listModelsUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+            const listResponse = await fetch(listModelsUrl);
+            const listData = await listResponse.json();
+
+            if (listData.models) {
+                console.log('✅ AVAILABLE MODELS FOR THIS KEY:');
+                console.log(listData.models.map(m => m.name).join(', '));
+            } else {
+                console.error('❌ FAILED TO LIST MODELS. Response:', JSON.stringify(listData));
+            }
+        } catch (listError) {
+            console.error('❌ EXCEPTION listing models:', listError.message);
+        }
+        console.log('------------------------------------------------');
+
         const testAI = new GoogleGenerativeAI(apiKey);
 
         // Try Primary

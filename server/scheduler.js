@@ -30,8 +30,8 @@ const getNextTweetTime = (minHours, maxHours) => {
 };
 
 // Get recent tweet texts to avoid repetition
-const getRecentTweetTexts = (campaignId) => {
-    const history = database.getTweetHistoryByCampaign(campaignId, 10);
+const getRecentTweetTexts = async (campaignId) => {
+    const history = await database.getTweetHistoryByCampaign(campaignId, 10);
     return history
         .filter(t => t.status === 'posted')
         .map(t => t.tweet_text);
@@ -43,7 +43,7 @@ const postTweet = async (campaign) => {
 
     try {
         // Get recent tweets to avoid repetition
-        const recentTweets = getRecentTweetTexts(campaign.id);
+        const recentTweets = await getRecentTweetTexts(campaign.id);
 
         // Generate tweet content
         const tweetContent = await gemini.generateTweet(
@@ -71,7 +71,7 @@ const postTweet = async (campaign) => {
         const result = await twitter.postTweet(fullTweet);
 
         // Log success
-        database.addTweetHistory({
+        await database.addTweetHistory({
             campaignId: campaign.id,
             tweetText: fullTweet,
             hashtagsUsed: selectedHashtags,
@@ -86,7 +86,7 @@ const postTweet = async (campaign) => {
         console.error(`[Scheduler] Failed to post tweet:`, error);
 
         // Log failure
-        database.addTweetHistory({
+        await database.addTweetHistory({
             campaignId: campaign.id,
             tweetText: 'Failed to generate/post',
             hashtagsUsed: [],
@@ -100,7 +100,7 @@ const postTweet = async (campaign) => {
 
 // Check and process scheduled tweets
 const checkScheduledTweets = async () => {
-    const campaign = database.getActiveCampaign();
+    const campaign = await database.getActiveCampaign();
 
     if (!campaign) {
         console.log('[Scheduler] No active campaign');
@@ -113,7 +113,7 @@ const checkScheduledTweets = async () => {
 
     if (new Date() > expiresAt) {
         console.log(`[Scheduler] Campaign expired, stopping`);
-        database.stopCampaign(campaign.id);
+        await database.stopCampaign(campaign.id);
         return;
     }
 
@@ -127,7 +127,7 @@ const checkScheduledTweets = async () => {
 
             // Schedule next tweet
             const nextTime = getNextTweetTime(campaign.min_interval_hours, campaign.max_interval_hours);
-            database.updateNextTweetTime(campaign.id, nextTime);
+            await database.updateNextTweetTime(campaign.id, nextTime);
             console.log(`[Scheduler] Next tweet scheduled for: ${nextTime}`);
         }
     }
@@ -162,20 +162,20 @@ const initializeScheduler = () => {
 
 // Start a campaign
 const startCampaign = async (campaignId) => {
-    const campaign = database.getCampaign(campaignId);
+    const campaign = await database.getCampaign(campaignId);
     if (!campaign) {
         throw new Error('Campaign not found');
     }
 
     // Stop any currently running campaign
-    const activeCampaign = database.getActiveCampaign();
+    const activeCampaign = await database.getActiveCampaign();
     if (activeCampaign && activeCampaign.id !== campaignId) {
-        database.stopCampaign(activeCampaign.id);
+        await database.stopCampaign(activeCampaign.id);
     }
 
     // Schedule first tweet (random time from now)
     const nextTweetTime = getNextTweetTime(campaign.min_interval_hours, campaign.max_interval_hours);
-    database.startCampaign(campaignId, nextTweetTime);
+    await database.startCampaign(campaignId, nextTweetTime);
 
     console.log(`[Scheduler] Campaign ${campaignId} started, first tweet at: ${nextTweetTime}`);
 
@@ -186,8 +186,8 @@ const startCampaign = async (campaignId) => {
 };
 
 // Stop a campaign
-const stopCampaign = (campaignId) => {
-    database.stopCampaign(campaignId);
+const stopCampaign = async (campaignId) => {
+    await database.stopCampaign(campaignId);
     console.log(`[Scheduler] Campaign ${campaignId} stopped`);
 
     return { success: true };
@@ -195,7 +195,7 @@ const stopCampaign = (campaignId) => {
 
 // Post immediately (for testing)
 const postNow = async (campaignId) => {
-    const campaign = database.getCampaign(campaignId);
+    const campaign = await database.getCampaign(campaignId);
     if (!campaign) {
         throw new Error('Campaign not found');
     }
@@ -204,8 +204,8 @@ const postNow = async (campaignId) => {
 };
 
 // Get scheduler status
-const getStatus = () => {
-    const activeCampaign = database.getActiveCampaign();
+const getStatus = async () => {
+    const activeCampaign = await database.getActiveCampaign();
 
     return {
         isSchedulerRunning: !!schedulerTask,

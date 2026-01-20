@@ -30,8 +30,8 @@ app.use('/api/campaigns', campaignsRoutes);
 app.use('/api/tweets', tweetsRoutes);
 
 // Health check / keep-alive endpoint
-app.get('/api/health', (req, res) => {
-    const status = scheduler.getStatus();
+app.get('/api/health', async (req, res) => {
+    const status = await scheduler.getStatus();
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -63,7 +63,7 @@ const initialize = async () => {
         await database.initDatabase();
 
         // Load saved credentials and initialize clients
-        const creds = database.getCredentials();
+        const creds = await database.getCredentials();
 
         if (creds?.twitterApiKey) {
             console.log('Initializing Twitter client...');

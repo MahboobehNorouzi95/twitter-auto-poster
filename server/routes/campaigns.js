@@ -4,9 +4,9 @@ const database = require('../database');
 const scheduler = require('../scheduler');
 
 // Get all campaigns
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const campaigns = database.getAllCampaigns();
+        const campaigns = await database.getAllCampaigns();
         res.json(campaigns);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -14,9 +14,9 @@ router.get('/', (req, res) => {
 });
 
 // Get single campaign
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
-        const campaign = database.getCampaign(parseInt(req.params.id));
+        const campaign = await database.getCampaign(parseInt(req.params.id));
         if (!campaign) {
             return res.status(404).json({ error: 'Campaign not found' });
         }
@@ -27,7 +27,7 @@ router.get('/:id', (req, res) => {
 });
 
 // Create campaign
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { subject, extraInfo, hashtags, minIntervalHours, maxIntervalHours, durationDays } = req.body;
 
@@ -59,7 +59,7 @@ router.post('/', (req, res) => {
         // Clean hashtags (remove # if present, then we'll add it back when posting)
         const cleanedHashtags = hashtags.map(h => h.replace(/^#/, '').trim()).filter(h => h);
 
-        const campaignId = database.createCampaign({
+        const campaignId = await database.createCampaign({
             subject: subject.trim(),
             extraInfo: extraInfo?.trim() || '',
             hashtags: cleanedHashtags,
@@ -68,7 +68,7 @@ router.post('/', (req, res) => {
             durationDays: parseInt(durationDays)
         });
 
-        const campaign = database.getCampaign(campaignId);
+        const campaign = await database.getCampaign(campaignId);
         res.status(201).json(campaign);
 
     } catch (error) {
@@ -77,10 +77,10 @@ router.post('/', (req, res) => {
 });
 
 // Update campaign
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const campaign = database.getCampaign(id);
+        const campaign = await database.getCampaign(id);
 
         if (!campaign) {
             return res.status(404).json({ error: 'Campaign not found' });
@@ -107,7 +107,7 @@ router.put('/:id', (req, res) => {
 
         const cleanedHashtags = hashtags.map(h => h.replace(/^#/, '').trim()).filter(h => h);
 
-        database.updateCampaign(id, {
+        await database.updateCampaign(id, {
             subject: subject.trim(),
             extraInfo: extraInfo?.trim() || '',
             hashtags: cleanedHashtags,
@@ -116,7 +116,7 @@ router.put('/:id', (req, res) => {
             durationDays: parseInt(durationDays)
         });
 
-        const updatedCampaign = database.getCampaign(id);
+        const updatedCampaign = await database.getCampaign(id);
         res.json(updatedCampaign);
 
     } catch (error) {
@@ -128,7 +128,7 @@ router.put('/:id', (req, res) => {
 router.post('/:id/start', async (req, res) => {
     try {
         // Check if credentials are set
-        if (!database.hasCredentials()) {
+        if (!await database.hasCredentials()) {
             return res.status(400).json({
                 error: 'Please set up your Twitter and Gemini API credentials first'
             });
@@ -144,10 +144,10 @@ router.post('/:id/start', async (req, res) => {
 });
 
 // Stop campaign
-router.post('/:id/stop', (req, res) => {
+router.post('/:id/stop', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const result = scheduler.stopCampaign(id);
+        const result = await scheduler.stopCampaign(id);
         res.json(result);
 
     } catch (error) {
@@ -158,7 +158,7 @@ router.post('/:id/stop', (req, res) => {
 // Post now (test/immediate post)
 router.post('/:id/post-now', async (req, res) => {
     try {
-        if (!database.hasCredentials()) {
+        if (!await database.hasCredentials()) {
             return res.status(400).json({
                 error: 'Please set up your Twitter and Gemini API credentials first'
             });
@@ -178,9 +178,9 @@ router.post('/:id/post-now', async (req, res) => {
 });
 
 // Get scheduler status
-router.get('/scheduler/status', (req, res) => {
+router.get('/scheduler/status', async (req, res) => {
     try {
-        const status = scheduler.getStatus();
+        const status = await scheduler.getStatus();
         res.json(status);
     } catch (error) {
         res.status(500).json({ error: error.message });

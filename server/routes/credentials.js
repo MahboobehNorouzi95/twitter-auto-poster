@@ -5,9 +5,9 @@ const twitter = require('../twitter');
 const gemini = require('../gemini');
 
 // Get credentials status (not the actual values)
-router.get('/status', (req, res) => {
+router.get('/status', async (req, res) => {
     try {
-        const creds = database.getCredentials();
+        const creds = await database.getCredentials();
 
         res.json({
             hasTwitterCredentials: !!(creds?.twitterApiKey && creds?.twitterApiSecret &&
@@ -67,8 +67,7 @@ router.post('/', async (req, res) => {
         }
 
         // Save credentials
-        // Save credentials
-        database.saveCredentials({
+        await database.saveCredentials({
             twitterApiKey: cleanedTwitterApiKey,
             twitterApiSecret: cleanedTwitterApiSecret,
             twitterAccessToken: cleanedTwitterAccessToken,

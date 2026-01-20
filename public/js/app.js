@@ -246,7 +246,10 @@ function updateRecentTweets(tweets) {
 // ===== Credentials =====
 async function loadCredentialsStatus() {
     try {
-        const status = await api.get('/credentials/status');
+        const [status, credentials] = await Promise.all([
+            api.get('/credentials/status'),
+            api.get('/credentials')
+        ]);
 
         const twitterStatus = $('#twitterStatus');
         const geminiStatus = $('#geminiStatus');
@@ -266,6 +269,14 @@ async function loadCredentialsStatus() {
             geminiStatus.textContent = 'Not configured';
             geminiStatus.classList.remove('configured');
         }
+
+        // Populate form with masked values (so user knows credentials are saved)
+        $('#twitterApiKey').placeholder = credentials.twitterApiKey || 'Enter Twitter API Key';
+        $('#twitterApiSecret').placeholder = credentials.twitterApiSecret || 'Enter Twitter API Secret';
+        $('#twitterAccessToken').placeholder = credentials.twitterAccessToken || 'Enter Access Token';
+        $('#twitterAccessSecret').placeholder = credentials.twitterAccessSecret || 'Enter Access Secret';
+        $('#geminiApiKey').placeholder = credentials.geminiApiKey || 'Enter Gemini API Key';
+
     } catch (error) {
         console.error('Failed to load credentials status:', error);
     }

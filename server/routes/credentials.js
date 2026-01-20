@@ -19,6 +19,30 @@ router.get('/status', async (req, res) => {
     }
 });
 
+// Get masked credentials (for display in UI)
+router.get('/', async (req, res) => {
+    try {
+        const creds = await database.getCredentials();
+
+        // Mask sensitive values (show last 4 characters only)
+        const maskValue = (value) => {
+            if (!value) return '';
+            if (value.length <= 8) return '*'.repeat(value.length);
+            return '*'.repeat(value.length - 4) + value.slice(-4);
+        };
+
+        res.json({
+            twitterApiKey: creds?.twitterApiKey ? maskValue(creds.twitterApiKey) : '',
+            twitterApiSecret: creds?.twitterApiSecret ? maskValue(creds.twitterApiSecret) : '',
+            twitterAccessToken: creds?.twitterAccessToken ? maskValue(creds.twitterAccessToken) : '',
+            twitterAccessSecret: creds?.twitterAccessSecret ? maskValue(creds.twitterAccessSecret) : '',
+            geminiApiKey: creds?.geminiApiKey ? maskValue(creds.geminiApiKey) : ''
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Save credentials
 router.post('/', async (req, res) => {
     try {

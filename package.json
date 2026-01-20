@@ -1,0 +1,28 @@
+{
+  "name": "twitter-auto-poster",
+  "version": "1.0.0",
+  "description": "AI-powered Twitter auto-posting web application",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "keywords": [
+    "twitter",
+    "automation",
+    "ai",
+    "social-media"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "sql.js": "^1.10.2",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "@google/generative-ai": "^0.21.0",
+    "node-cron": "^3.0.3",
+    "twitter-api-v2": "^1.15.2"
+  }
+}

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TweetBot Pro - AI-Powered Twitter Automation</title>
+    <meta name="description" content="Automate your Twitter posts with AI-generated content and smart scheduling">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </div>
+                <span class="logo-text">TweetBot Pro</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-item active" data-section="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-section="credentials">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <span>API Setup</span>
+                </button>
+                <button class="nav-item" data-section="campaigns">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20V10"/>
+                        <path d="M18 20V4"/>
+                        <path d="M6 20v-4"/>
+                    </svg>
+                    <span>Campaigns</span>
+                </button>
+                <button class="nav-item" data-section="history">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span>History</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator" id="schedulerStatus">
+                    <span class="status-dot inactive"></span>
+                    <span class="status-text">Scheduler Inactive</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <header class="section-header">
+                    <h1>Dashboard</h1>
+                    <p class="section-subtitle">Overview of your Twitter automation</p>
+                </header>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalTweets">0</span>
+                            <span class="stat-label">Tweets Posted</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="successfulTweets">0</span>
+                            <span class="stat-label">Successful</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 20V10"/>
+                                <path d="M18 20V4"/>
+                                <path d="M6 20v-4"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="activeCampaigns">0</span>
+                            <span class="stat-label">Active Campaigns</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="nextTweetTime">--</span>
+                            <span class="stat-label">Next Tweet</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card active-campaign-card">
+                        <div class="card-header">
+                            <h2>Active Campaign</h2>
+                        </div>
+                        <div class="card-body" id="activeCampaignInfo">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                                <p>No active campaign</p>
+                                <button class="btn btn-primary btn-sm" onclick="showSection('campaigns')">Create Campaign</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card recent-tweets-card">
+                        <div class="card-header">
+                            <h2>Recent Tweets</h2>
+                            <button class="btn btn-ghost btn-sm" onclick="showSection('history')">View All</button>
+                        </div>
+                        <div class="card-body" id="recentTweets">
+                            <div class="empty-state">
+                                <p>No tweets yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Credentials Section -->
+            <section id="credentials" class="section">
+                <header class="section-header">
+                    <h1>API Setup</h1>
+                    <p class="section-subtitle">Configure your Twitter and Gemini API credentials</p>
+                </header>
+
+                <div class="credentials-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title-with-icon">
+                                <div class="card-icon twitter">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                    </svg>
+                                </div>
+                                <h2>Twitter API</h2>
+                            </div>
+                            <span class="credential-status" id="twitterStatus">Not configured</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-box">
+                                <p>You need a Twitter Developer account to use this app. <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank">Get your API keys here →</a></p>
+                            </div>
+                            <form id="twitterForm" class="form">
+                                <div class="form-group">
+                                    <label for="twitterApiKey">API Key (Consumer Key)</label>
+                                    <input type="password" id="twitterApiKey" placeholder="Enter your API Key">
+                                </div>
+                                <div class="form-group">
+                                    <label for="twitterApiSecret">API Secret (Consumer Secret)</label>
+                                    <input type="password" id="twitterApiSecret" placeholder="Enter your API Secret">
+                                </div>
+                                <div class="form-group">
+                                    <label for="twitterAccessToken">Access Token</label>
+                                    <input type="password" id="twitterAccessToken" placeholder="Enter your Access Token">
+                                </div>
+                                <div class="form-group">
+                                    <label for="twitterAccessSecret">Access Token Secret</label>
+                                    <input type="password" id="twitterAccessSecret" placeholder="Enter your Access Token Secret">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title-with-icon">
+                                <div class="card-icon gemini">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                    </svg>
+                                </div>
+                                <h2>Gemini API</h2>
+                            </div>
+                            <span class="credential-status" id="geminiStatus">Not configured</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-box">
+                                <p>Get a free Gemini API key from Google AI Studio. <a href="https://aistudio.google.com/apikey" target="_blank">Get your API key here →</a></p>
+                            </div>
+                            <form id="geminiForm" class="form">
+                                <div class="form-group">
+                                    <label for="geminiApiKey">Gemini API Key</label>
+                                    <input type="password" id="geminiApiKey" placeholder="Enter your Gemini API Key">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" id="saveCredentials">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Save Credentials
+                    </button>
+                </div>
+            </section>
+
+            <!-- Campaigns Section -->
+            <section id="campaigns" class="section">
+                <header class="section-header">
+                    <h1>Campaigns</h1>
+                    <p class="section-subtitle">Create and manage your tweet campaigns</p>
+                </header>
+
+                <div class="campaigns-container">
+                    <div class="card campaign-form-card">
+                        <div class="card-header">
+                            <h2 id="campaignFormTitle">Create New Campaign</h2>
+                        </div>
+                        <div class="card-body">
+                            <form id="campaignForm" class="form">
+                                <input type="hidden" id="campaignId">
+                                
+                                <div class="form-group">
+                                    <label for="subject">Subject / Topic *</label>
+                                    <input type="text" id="subject" placeholder="e.g., Artificial Intelligence, Web Development, Fitness Tips" required>
+                                    <span class="form-hint">The main topic for your tweets</span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="extraInfo">Extra Info / Style Guidance</label>
+                                    <textarea id="extraInfo" rows="3" placeholder="e.g., Keep it friendly and casual, focus on beginners, include interesting facts..."></textarea>
+                                    <span class="form-hint">Additional context to guide the AI</span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Hashtags (up to 5) *</label>
+                                    <div class="hashtag-input-container">
+                                        <div class="hashtag-list" id="hashtagList"></div>
+                                        <div class="hashtag-input-wrapper">
+                                            <span class="hashtag-prefix">#</span>
+                                            <input type="text" id="hashtagInput" placeholder="Add hashtag and press Enter" maxlength="50">
+                                        </div>
+                                    </div>
+                                    <span class="form-hint">3 random hashtags will be added to each tweet</span>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="minInterval">Min Interval (hours) *</label>
+                                        <input type="number" id="minInterval" value="3" min="0.5" max="24" step="0.5" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="maxInterval">Max Interval (hours) *</label>
+                                        <input type="number" id="maxInterval" value="6" min="0.5" max="48" step="0.5" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="durationDays">Duration (days) *</label>
+                                        <input type="number" id="durationDays" value="7" min="1" max="365" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-ghost" id="resetCampaignForm">Reset</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <span id="campaignSubmitText">Create Campaign</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card campaigns-list-card">
+                        <div class="card-header">
+                            <h2>Your Campaigns</h2>
+                        </div>
+                        <div class="card-body" id="campaignsList">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M12 20V10"/>
+                                    <path d="M18 20V4"/>
+                                    <path d="M6 20v-4"/>
+                                </svg>
+                                <p>No campaigns yet</p>
+                                <span>Create your first campaign to get started</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section id="history" class="section">
+                <header class="section-header">
+                    <h1>Tweet History</h1>
+                    <p class="section-subtitle">View all posted tweets and their status</p>
+                </header>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>All Tweets</h2>
+                        <button class="btn btn-ghost btn-sm" id="refreshHistory">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 4 23 10 17 10"/>
+                                <polyline points="1 20 1 14 7 14"/>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                            </svg>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="card-body" id="tweetHistory">
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            <p>No tweets posted yet</p>
+                            <span>Start a campaign to begin posting</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

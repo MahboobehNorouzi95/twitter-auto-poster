@@ -62,6 +62,7 @@ const validateApiKey = async (apiKey) => {
         await testModel.generateContent('Say "test" in one word.');
         return { valid: true };
     } catch (error) {
+        console.error('Gemini Validation Error:', error);
         return { valid: false, error: error.message };
     }
 };

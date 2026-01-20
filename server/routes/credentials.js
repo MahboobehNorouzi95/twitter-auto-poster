@@ -30,13 +30,20 @@ router.post('/', async (req, res) => {
             geminiApiKey
         } = req.body;
 
+        // Clean inputs (remove potential whitespace from copy-pasting)
+        const cleanedTwitterApiKey = twitterApiKey?.trim();
+        const cleanedTwitterApiSecret = twitterApiSecret?.trim();
+        const cleanedTwitterAccessToken = twitterAccessToken?.trim();
+        const cleanedTwitterAccessSecret = twitterAccessSecret?.trim();
+        const cleanedGeminiApiKey = geminiApiKey?.trim();
+
         // Validate Twitter credentials
-        if (twitterApiKey && twitterApiSecret && twitterAccessToken && twitterAccessSecret) {
+        if (cleanedTwitterApiKey && cleanedTwitterApiSecret && cleanedTwitterAccessToken && cleanedTwitterAccessSecret) {
             const twitterResult = await twitter.validateCredentials({
-                twitterApiKey,
-                twitterApiSecret,
-                twitterAccessToken,
-                twitterAccessSecret
+                twitterApiKey: cleanedTwitterApiKey,
+                twitterApiSecret: cleanedTwitterApiSecret,
+                twitterAccessToken: cleanedTwitterAccessToken,
+                twitterAccessSecret: cleanedTwitterAccessSecret
             });
 
             if (!twitterResult.valid) {
@@ -48,8 +55,8 @@ router.post('/', async (req, res) => {
         }
 
         // Validate Gemini credentials
-        if (geminiApiKey) {
-            const geminiResult = await gemini.validateApiKey(geminiApiKey);
+        if (cleanedGeminiApiKey) {
+            const geminiResult = await gemini.validateApiKey(cleanedGeminiApiKey);
 
             if (!geminiResult.valid) {
                 return res.status(400).json({
@@ -60,26 +67,27 @@ router.post('/', async (req, res) => {
         }
 
         // Save credentials
+        // Save credentials
         database.saveCredentials({
-            twitterApiKey,
-            twitterApiSecret,
-            twitterAccessToken,
-            twitterAccessSecret,
-            geminiApiKey
+            twitterApiKey: cleanedTwitterApiKey,
+            twitterApiSecret: cleanedTwitterApiSecret,
+            twitterAccessToken: cleanedTwitterAccessToken,
+            twitterAccessSecret: cleanedTwitterAccessSecret,
+            geminiApiKey: cleanedGeminiApiKey
         });
 
         // Initialize clients
-        if (twitterApiKey) {
+        if (cleanedTwitterApiKey) {
             twitter.initializeTwitter({
-                twitterApiKey,
-                twitterApiSecret,
-                twitterAccessToken,
-                twitterAccessSecret
+                twitterApiKey: cleanedTwitterApiKey,
+                twitterApiSecret: cleanedTwitterApiSecret,
+                twitterAccessToken: cleanedTwitterAccessToken,
+                twitterAccessSecret: cleanedTwitterAccessSecret
             });
         }
 
-        if (geminiApiKey) {
-            gemini.initializeGemini(geminiApiKey);
+        if (cleanedGeminiApiKey) {
+            gemini.initializeGemini(cleanedGeminiApiKey);
         }
 
         res.json({

@@ -19,11 +19,19 @@ const postTweet = async (tweetText) => {
     }
 
     try {
+        // DIAGNOSTIC: Check who we are posting as
+        const me = await twitterClient.v2.me();
+        console.log(`[Twitter] Posting as user: @${me.data.username} (${me.data.id})`);
+
         const result = await twitterClient.v2.tweet(tweetText);
+
+        console.log(`[Twitter] API Response:`, JSON.stringify(result));
+
         return {
             success: true,
             tweetId: result.data.id,
-            text: result.data.text
+            text: result.data.text,
+            username: me.data.username
         };
     } catch (error) {
         console.error('Twitter API error:', error);

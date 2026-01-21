@@ -96,22 +96,33 @@ const initDatabase = async () => {
 
 // Credentials functions
 const saveCredentials = async (credentials) => {
+    // Encrypt the values first
+    const encrypted = {
+        twitterApiKey: encrypt(credentials.twitterApiKey),
+        twitterApiSecret: encrypt(credentials.twitterApiSecret),
+        twitterAccessToken: encrypt(credentials.twitterAccessToken),
+        twitterAccessSecret: encrypt(credentials.twitterAccessSecret),
+        geminiApiKey: encrypt(credentials.geminiApiKey)
+    };
+
+    // Use COALESCE to keep existing value if the new one is null/undefined
+    // This allows partial updates (e.g. updating just Gemini key while keeping Twitter keys)
     const query = `
         UPDATE credentials SET
-            twitter_api_key = $1,
-            twitter_api_secret = $2,
-            twitter_access_token = $3,
-            twitter_access_secret = $4,
-            gemini_api_key = $5,
+            twitter_api_key = COALESCE($1, twitter_api_key),
+            twitter_api_secret = COALESCE($2, twitter_api_secret),
+            twitter_access_token = COALESCE($3, twitter_access_token),
+            twitter_access_secret = COALESCE($4, twitter_access_secret),
+            gemini_api_key = COALESCE($5, gemini_api_key),
             updated_at = NOW()
         WHERE id = 1
     `;
     const values = [
-        encrypt(credentials.twitterApiKey),
-        encrypt(credentials.twitterApiSecret),
-        encrypt(credentials.twitterAccessToken),
-        encrypt(credentials.twitterAccessSecret),
-        encrypt(credentials.geminiApiKey)
+        encrypted.twitterApiKey,
+        encrypted.twitterApiSecret,
+        encrypted.twitterAccessToken,
+        encrypted.twitterAccessSecret,
+        encrypted.geminiApiKey
     ];
     await pool.query(query, values);
 };

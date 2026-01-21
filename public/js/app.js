@@ -119,6 +119,37 @@ function showSection(sectionId) {
 }
 
 // ===== Dashboard =====
+let lastTweetCount = 0;
+let isFirstLoad = true;
+
+// Simple "Ding" sound using Web Audio API
+const playSuccessSound = () => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        // Nice "ding" sound
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
+
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.5);
+    } catch (e) {
+        console.error('Audio play failed', e);
+    }
+};
+
 async function loadDashboard() {
     try {
         // Load stats
@@ -127,9 +158,19 @@ async function loadDashboard() {
             api.get('/campaigns/scheduler/status')
         ]);
 
+        // Check for new tweets to play sound
+        const successfulCount = tweets.filter(t => t.status === 'posted').length;
+        if (!isFirstLoad && successfulCount > lastTweetCount) {
+            playSuccessSound();
+            showToast('success', 'New Tweet Posted!', 'Your queued tweet was just published.');
+        }
+
+        lastTweetCount = successfulCount;
+        isFirstLoad = false;
+
         // Update stats
         $('#totalTweets').textContent = tweets.length;
-        $('#successfulTweets').textContent = tweets.filter(t => t.status === 'posted').length;
+        $('#successfulTweets').textContent = successfulCount;
         $('#activeCampaigns').textContent = status.activeCampaign ? '1' : '0';
         $('#nextTweetTime').textContent = formatTimeUntil(status.activeCampaign?.nextTweetAt);
 
